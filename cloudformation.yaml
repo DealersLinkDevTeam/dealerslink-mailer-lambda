@@ -1,0 +1,112 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: deaelerslink-mailer-lambda powered by CloudFront, SQS, and Lambda
+Resources:
+  YOUR_SQS_TASK_NAME:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 60
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt YOUR_SQS_DEAD_LETTER_NAME.Arn
+        maxReceiveCount: 10
+  YOUR_SQS_DEAD_LETTER_NAME:
+    Type: AWS::SQS::Queue
+
+  MailerConsumerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: logs
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+      - PolicyName: sqs
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:ReceiveMessage
+            Resource: !GetAtt YOUR_SQS_TASK_NAME.Arn
+      - PolicyName: lambda
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource: !GetAtt YOUR_LAMBDA_WORKER_FUNCTION_NAME.Arn
+
+  YOUR_LAMBDA_CONSUMER_FUNCTION_NAME:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: consumer.handler
+      MemorySize: 256
+      Role: !GetAtt MailerConsumerLambdaRole.Arn
+      Runtime: nodejs8.10
+      Timeout: 60
+      Environment:
+        Variables:
+          TASK_QUEUE_URL: !Ref YOUR_SQS_TASK_NAME
+          WORKER_LAMBDA_NAME: !Ref YOUR_LAMBDA_WORKER_FUNCTION_NAME
+      Events:
+        Timer:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+
+  MailerWorkerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: '/'
+      Policies:
+      - PolicyName: logs
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+      - PolicyName: sqs
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:DeleteMessage
+            Resource: !GetAtt YOUR_SQS_TASK_NAME.Arn
+
+  YOUR_LAMBDA_WORKER_FUNCTION_NAME:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: worker.handler
+      MemorySize: 128
+      Role: !GetAtt MailerWorkerLambdaRole.Arn
+      Runtime: nodejs8.10
+      Timeout: 60
+      Environment:
+        Variables:
+          TASK_QUEUE_URL: !Ref YOUR_SQS_TASK_NAME

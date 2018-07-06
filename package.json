@@ -1,0 +1,63 @@
+{
+  "name": "dealerslink-mailer-lambda",
+  "version": "1.0.0",
+  "description": "SQS email processor and worker to deliver email message via sendgrid autonomously",
+  "main": "index.js",
+  "config": {
+    "region": "YOUR_AWS_REGION",
+    "accountId": "YOUR_ACCOUNT_ID",
+    "cloudFormationStackName": "YOUR_CLOUDFORMATION_STACK_NAME",
+    "s3BucketName": "YOUR_UNIQUE_BUCKET_NAME",
+    "sqsTaskName": "YOUR_SQS_TASK_NAME",
+    "sqsDeadLetterName": "YOUR_SQS_DEAD_LETTER_NAME",
+    "lambdaConsumerFunctionName": "YOUR_LAMBDA_CONSUMER_FUNCTION_NAME",
+    "lambdaWorkerFunctionName": "YOUR_LAMBDA_WORKER_FUNCTION_NAME"
+  },
+  "scripts": {
+    "test": "nyc mocha",
+    "build": "gulp",
+    "fix": "gulp fix",
+    "lint": "gulp lint",
+    "coverage": "nyc --reporter=lcov mocha && cat ./coverage/lcov.info | codacy-coverage",
+    "pretty": "gulp pretty",
+    "config": "node ./scripts/configure.js",
+    "deconfig": "node ./scripts/deconfigure.js",
+    "aws-config": "node ./scripts/aws-configure.js",
+    "aws-deconfig": "node ./scripts/aws-deconfigure.js",
+    "invoke-lambda": "aws lambda invoke --function-name $npm_package_config_functionName --region $npm_package_config_region --payload file://api-gateway-event.json lambda-invoke-response.json && cat lambda-invoke-response.json",
+    "create-bucket": "aws s3 mb s3://$npm_package_config_s3BucketName --region $npm_package_config_region",
+    "delete-bucket": "aws s3 rb s3://$npm_package_config_s3BucketName --region $npm_package_config_region",
+    "package": "aws cloudformation package --template ./cloudformation.yaml --s3-bucket $npm_package_config_s3BucketName --output-template packaged-sam.yaml --region $npm_package_config_region",
+    "deploy": "aws cloudformation deploy --template-file packaged-sam.yaml --stack-name $npm_package_config_cloudFormationStackName --capabilities CAPABILITY_IAM --region $npm_package_config_region",
+    "package-deploy": "npm run package && npm run deploy",
+    "delete-stack": "aws cloudformation delete-stack --stack-name $npm_package_config_cloudFormationStackName --region $npm_package_config_region",
+    "setup": "npm install && (aws s3api get-bucket-location --bucket $npm_package_config_s3BucketName --region $npm_package_config_region || npm run create-bucket) && npm run package-deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dealerslink/dealerslink-eventlog-lambda.git"
+  },
+  "author": "Jay Reardon <jay.reardon@dealerslink.com>",
+  "bugs": {
+    "url": "https://github.com/dealerslink/dealerslink-eventlog-lambda/issues"
+  },
+  "homepage": "https://github.com/dealerslink/dealerslink-eventlog-lambda#readme",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "gulp": "^3.9.1",
+    "gulp-eslint": "^4.0.2",
+    "gulp-mocha": "^5.0.0",
+    "gulp-prettier": "^1.1.0",
+    "mocha": "^5.0.4",
+    "nyc": "^11.6.0",
+    "prettier": "^1.11.1"
+  },
+  "dependencies": {
+    "@dealerslink/lodash-extended": "^1.0.0",
+    "@sendgrid/mail": "^6.3.1",
+    "async": "^2.6.0",
+    "aws-sdk": "^2.221.1",
+    "commander": "^2.15.0",
+    "inquirer": "^5.1.0"
+  }
+}
