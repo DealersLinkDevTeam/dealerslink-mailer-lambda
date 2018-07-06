@@ -71,7 +71,7 @@ inquirer.prompt([
         regexp: /^(        maxReceiveCount: 10\n  )(.*):$/m,
         replacement: `$1${defaults.sqsDeadLetterQueue}:`
       }, {
-        regexp: /^(      deadLetterTargetArn: !GetAtt )(.*)$/m,
+        regexp: /^(        deadLetterTargetArn: !GetAtt )(.*)$/m,
         replacement: `$1${defaults.sqsDeadLetterQueue}.Arn`
       }, {
         regexp: /^(  .*)(:\n    Type: AWS::Serverless::Function\n    Properties:\n      CodeUri: \.\/\n      Handler: consumer.handler)$/m,
