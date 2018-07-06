@@ -1,6 +1,6 @@
 {
   "name": "dealerslink-mailer-lambda",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SQS email processor and worker to deliver email message via sendgrid autonomously",
   "main": "index.js",
   "config": {
