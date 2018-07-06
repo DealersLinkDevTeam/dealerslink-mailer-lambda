@@ -135,7 +135,7 @@ function setupQuestions() {
       type: 'input',
       name: 'stack',
       message: 'Enter a CloudFormation Stack name:',
-      default: 'EventLogLambdaStack',
+      default: 'MailerLambdaStack',
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -154,7 +154,7 @@ function setupQuestions() {
       type: 'input',
       name: 'bucket',
       message: 'Enter a unique AWS S3 Bucket name:',
-      default: 'event-log-bucket',
+      default: 'mailer-lambda-bucket',
       validate: (v) => {
         if ((/^[a-z0-9_/-]*$/).test(v)) {
           return true;
@@ -172,7 +172,7 @@ function setupQuestions() {
       type: 'input',
       name: 'task',
       message: 'Enter the AWS SQS Task Queue name:',
-      default: 'EventLogTask',
+      default: 'MailerTask',
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -190,7 +190,7 @@ function setupQuestions() {
       type: 'input',
       name: 'deadletter',
       message: 'Enter the AWS SQS Deadletter Queue name:',
-      default: 'EventLogDeadLetter',
+      default: 'MailerDeadLetter',
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -208,7 +208,7 @@ function setupQuestions() {
       type: 'input',
       name: 'consumer',
       message: 'Enter the AWS Lambda Consumer function name:',
-      default: 'EventLogConsumer',
+      default: 'MailerConsumer',
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -226,7 +226,7 @@ function setupQuestions() {
       type: 'input',
       name: 'worker',
       message: 'Enter the AWS Lambda Worker function name:',
-      default: 'EventLogWorker',
+      default: 'MailerWorker',
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
