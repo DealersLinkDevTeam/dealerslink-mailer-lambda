@@ -15,6 +15,7 @@ const configFolder = config.configFolder;
 
 const allJSFiles = [
   '*.js',
+  '!gulpfile.js',
   `${testFolder}/**/*.js`,
   `${testFolder}/*.js`,
   `${devFolder}/**/*.js`,
@@ -33,15 +34,17 @@ gulp.task('lint', () => {
     .pipe(eslint.failAfterError());
 });
 
-gulp.task('test', ['lint'], () => {
-  return gulp.src('test/*.js', { read: false }).pipe(mocha())
+gulp.task('test', () => {
+  return gulp.src('test/*.js', { read: false })
+    .pipe(mocha())
     .once('error', () => {
       process.exit(1);
     });
 });
 
 gulp.task('fix', () => {
-  return gulp.src(allJSFiles).pipe(eslint(esLintOpts))
+  return gulp.src(allJSFiles)
+    .pipe(eslint(esLintOpts))
     .pipe(eslint.format())
     .pipe(eslint.failAfterError())
     .pipe(gulp.dest((file) => {
@@ -50,11 +53,12 @@ gulp.task('fix', () => {
 });
 
 gulp.task('pretty', () => {
-  return gulp.src(allJSFiles).pipe(prettier(prettyConf))
+  return gulp.src(allJSFiles)
+    .pipe(prettier(prettyConf))
     .pipe(eslint(esLintOpts))
     .pipe(gulp.dest((file) => {
       return file.base;
     }));
 });
 
-gulp.task('default', ['test']);
+gulp.task('default', gulp.series('lint', 'test'));
