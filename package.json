@@ -1,6 +1,6 @@
 {
   "name": "dealerslink-mailer-lambda",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "SQS email processor and worker to deliver email message via sendgrid autonomously",
   "main": "index.js",
   "config": {
@@ -8,6 +8,7 @@
     "accountId": "YOUR_ACCOUNT_ID",
     "cloudFormationStackName": "YOUR_CLOUDFORMATION_STACK_NAME",
     "s3BucketName": "YOUR_UNIQUE_BUCKET_NAME",
+    "s3Prefix": "YOUR_S3_PREFIX",
     "sqsTaskName": "YOUR_SQS_TASK_NAME",
     "sqsDeadLetterName": "YOUR_SQS_DEAD_LETTER_NAME",
     "lambdaConsumerFunctionName": "YOUR_LAMBDA_CONSUMER_FUNCTION_NAME",
@@ -44,20 +45,20 @@
   "homepage": "https://github.com/dealerslink/dealerslink-eventlog-lambda#readme",
   "devDependencies": {
     "chai": "^4.1.2",
-    "gulp": "^3.9.1",
-    "gulp-eslint": "^4.0.2",
-    "gulp-mocha": "^5.0.0",
-    "gulp-prettier": "^1.1.0",
+    "gulp": "^4.0.0",
+    "gulp-eslint": "^5.0.0",
+    "gulp-mocha": "^6.0.0",
+    "gulp-prettier": "^2.0.0",
     "mocha": "^5.0.4",
-    "nyc": "^11.6.0",
-    "prettier": "^1.11.1"
+    "nyc": "^12.0.2",
+    "prettier": "^1.14.2"
   },
   "dependencies": {
     "@dealerslink/lodash-extended": "^1.0.0",
     "@sendgrid/mail": "^6.3.1",
     "async": "^2.6.0",
-    "aws-sdk": "^2.221.1",
-    "commander": "^2.15.0",
-    "inquirer": "^5.1.0"
+    "aws-sdk": "^2.297.0",
+    "commander": "^2.17.1",
+    "inquirer": "^6.1.0"
   }
 }

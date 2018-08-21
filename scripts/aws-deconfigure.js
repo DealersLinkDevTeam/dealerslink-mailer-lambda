@@ -10,6 +10,7 @@ const defaults = {
   account: 'YOUR_ACCOUNT_ID',
   cfstack: 'YOUR_CLOUDFORMATION_STACK_NAME',
   bucket: 'YOUR_UNIQUE_BUCKET_NAME',
+  prefix: 'YOUR_S3_PREFIX',
   sqsTaskQueue: 'YOUR_SQS_TASK_NAME',
   sqsDeadLetterQueue: 'YOUR_SQS_DEAD_LETTER_NAME',
   lambdaConsumer: 'YOUR_LAMBDA_CONSUMER_FUNCTION_NAME',
@@ -39,6 +40,9 @@ inquirer.prompt([
       }, {
         regexp: /("s3BucketName": )"([A-Za-z0-9_-]*)",/,
         replacement: `$1"${defaults.bucket}",`
+      }, {
+        regexp: /("s3Prefix": )"([a-zA-Z_\-0-9\/]*)",/,
+        replacement: `$1"${defaults.prefix}",`
       }, {
         regexp: /("sqsTaskName": )"([A-Za-z0-9_-]*)",/,
         replacement: `$1"${defaults.sqsTaskQueue}",`

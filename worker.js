@@ -23,7 +23,7 @@ class Worker {
   scrubUUID(uuid) {
     if (uuid.length === 35) {
       // Of the form -- 7BBD3527-AE69-6855-27473B61228E264D
-      return `${uuid.substr(0,23)}-${uuid.substr(23,35)}`;
+      return `${uuid.substr(0, 23)}-${uuid.substr(23, 35)}`;
     }
     return uuid;
   }
@@ -38,8 +38,10 @@ class Worker {
   fieldCheck(obj, fields) {
     let ret = true;
     fields.forEach((key) => {
-      let test = __.hasValue(obj[key]);
-      if (!test) { this.missingFields.push(key); }
+      const test = __.hasValue(obj[key]);
+      if (!test) {
+        this.missingFields.push(key);
+      }
       ret = ret && test;
     });
     return ret;
@@ -52,7 +54,7 @@ class Worker {
     if (body) {
       // validate that the data lints
       try {
-        let data = this.scrubJSONData(this.event.Body);
+        const data = this.scrubJSONData(this.event.Body);
         obj = JSON.parse(data);
       } catch (ex) {
         this.errorState = true;
@@ -63,18 +65,19 @@ class Worker {
       const eventFields = ['mailID', 'mailTimestamp', 'from', 'to', 'subject', 'body'];
       if (!this.fieldCheck(obj, eventFields)) {
         this.errorState = true;
-        return done(new Error(`Missing required fields: ${this.missingFields.join(', ')}`))
+        return done(new Error(`Missing required fields: ${this.missingFields.join(', ')}`));
       }
 
-      const uuid = this.scrubUUID(obj.mailID);
+      this.scrubUUID(obj.mailID);
 
       // Attempt mail delivery
-      this.mailer.dispatch(obj.to, obj.from, obj.subject, obj.body)
-        .then((result) => {
+      this.mailer
+        .dispatch(obj.to, obj.from, obj.subject, obj.body)
+        .then(() => {
           done();
         })
         .catch((err) => {
-          let msg = err.message || err || '';
+          const msg = err.message || err || '';
           console.log(msg);
           console.log(err);
           this.errorState = true;
@@ -92,14 +95,14 @@ class Worker {
 
     if (!this.options.ignoreQueue) {
       console.log('Deleting Message');
-      let obj = {
+      const obj = {
         ReceiptHandle: this.event.ReceiptHandle,
         QueueUrl: TASK_QUEUE_URL
       };
       console.log(obj);
       try {
         console.log('Sending Delete Request');
-        let sqsDeleteReq = sqs.deleteMessage(obj, (err, data) => {
+        sqs.deleteMessage(obj, (err, data) => {
           if (err) {
             console.log(`Deletion Error -- ${err}`);
             console.log(err);
@@ -128,13 +131,10 @@ class Worker {
       // Ensure that erroring messages are not removed from the queue so they end up in the dead-letter
       if (!this.errorState) {
         this.deleteMessage(err);
+      } else if (err) {
+        this.callback(err);
       } else {
-        // Some error occurred skip deletion of message
-        if (err) {
-          this.callback(err);
-        } else {
-          this.callback();
-        }
+        this.callback();
       }
     });
   }
@@ -143,10 +143,6 @@ class Worker {
 exports.handler = function(event, context, callback, options) {
   const worker = new Worker(event, context, callback, options);
   worker.startup();
-};
-
-exports.close = function() {
-  close(0);
 };
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -183,6 +179,14 @@ function close(code) {
   );
 }
 
+exports.close = function() {
+  close(0);
+};
+
 // Event handlers for CTRL+C and kill pid
-process.on('SIGTERM', () => { close(15); });
-process.on('SIGINT', () => { close(2); });
+process.on('SIGTERM', () => {
+  close(15);
+});
+process.on('SIGINT', () => {
+  close(2);
+});
