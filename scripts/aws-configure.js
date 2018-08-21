@@ -27,6 +27,7 @@ const options = {
   region: null,
   account: null,
   bucket: null,
+  prefix: null,
   cfstack: null,
   sqsTaskQueue: null,
   sqsDeadLetterQueue: null,
@@ -50,6 +51,9 @@ function performModify() {
     }, {
       regexp: /("s3BucketName": )"([A-Za-z0-9_-]*)",/,
       replacement: `$1"${options.bucket}",`
+    }, {
+      regexp: /("s3Prefix": )"([A-Za-z0-9_-]*)",/,
+      replacement: `$1"${options.prefix}",`
     }, {
       regexp: /("sqsTaskName": )"([A-Za-z0-9_-]*)",/,
       replacement: `$1"${options.sqsTaskQueue}",`
@@ -105,7 +109,7 @@ function setupQuestions() {
     questions.push({
       type: 'list',
       name: 'region',
-      default: availableRegions,
+      default: getDefault(options.region, availableRegions),
       choices: availableRegions,
       message: 'Select an AWS Region:'
     });
@@ -118,6 +122,7 @@ function setupQuestions() {
       type: 'input',
       name: 'account',
       message: 'Supply a 12-digit AWS Account ID:',
+      default: getDefault(options.account, null),
       validate: (v) => {
         if ((/^\w{12}$/).test(v)) {
           return true;
@@ -135,7 +140,7 @@ function setupQuestions() {
       type: 'input',
       name: 'stack',
       message: 'Enter a CloudFormation Stack name:',
-      default: 'MailerLambdaStack',
+      default: getDefault(options.stack, 'MailerLambdaStack'),
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -154,7 +159,7 @@ function setupQuestions() {
       type: 'input',
       name: 'bucket',
       message: 'Enter a unique AWS S3 Bucket name:',
-      default: 'mailer-lambda-bucket',
+      default: getDefault(options.bucket, 'mailer-lambda-bucket'),
       validate: (v) => {
         if ((/^[a-z0-9_/-]*$/).test(v)) {
           return true;
@@ -167,12 +172,30 @@ function setupQuestions() {
     options.bucket = program.bucket;
   }
 
+  if (!program.prefix) {
+    questions.push({
+      type: 'input',
+      name: 'prefix',
+      message: 'Enter a unique AWS S3 Prefix name:',
+      default: getDefault(options.prefix, '/'),
+      validate: (v) => {
+        if ((/^[a-zA-Z_\-0-9\/]*$/).test(v)) {
+          return true;
+        } else {
+          return 'Must be a valid bucket name. Only Alphanumercic, Underscore, Dash and Slash are allowed.'
+        }
+      }
+    });
+  } else {
+    options.prefix = program.prefix;
+  }
+
   if (!program.task) {
     questions.push({
       type: 'input',
       name: 'task',
       message: 'Enter the AWS SQS Task Queue name:',
-      default: 'MailerTask',
+      default: getDefault(options.task, 'MailerTask'),
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -190,7 +213,7 @@ function setupQuestions() {
       type: 'input',
       name: 'deadletter',
       message: 'Enter the AWS SQS Deadletter Queue name:',
-      default: 'MailerDeadLetter',
+      default: getDefault(options.deadletter, 'MailerDeadLetter'),
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -208,7 +231,7 @@ function setupQuestions() {
       type: 'input',
       name: 'consumer',
       message: 'Enter the AWS Lambda Consumer function name:',
-      default: 'MailerConsumer',
+      default: getDefault(options.consumer, 'MailerConsumer'),
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -226,7 +249,7 @@ function setupQuestions() {
       type: 'input',
       name: 'worker',
       message: 'Enter the AWS Lambda Worker function name:',
-      default: 'MailerWorker',
+      default: getDefault(options.worker, 'MailerWorker'),
       validate: (v) => {
         if ((/^[a-zA-Z][a-zA-Z0-9]*$/).test(v)) {
           return true;
@@ -245,13 +268,38 @@ function mapAnswers(answers) {
   if (answers.account) { options.account = answers.account; }
   if (answers.stack) { options.cfstack = answers.stack; }
   if (answers.bucket) { options.bucket = answers.bucket; }
+  if (answers.prefix) { options.prefix = answers.prefix; }
   if (answers.task) { options.sqsTaskQueue = answers.task; }
   if (answers.deadletter) { options.sqsDeadLetterQueue = answers.deadletter; }
   if (answers.consumer) { options.lambdaConsumer = answers.consumer; }
   if (answers.worker) { options.lambdaWorker = answers.worker; }
 }
 
+function getDefault(value, def) {
+  if (value) {
+    if (value.toString().startsWith('YOUR')) {
+      return def;
+    }
+    return value;
+  }
+  return def;
+}
+
+function mapDefaults() {
+  const conf = pack.config;
+  if (conf.accountId) { options.account = conf.accountId; }
+  if (conf.lambdaConsumerFunctionName) { options.consumer = conf.lambdaConsumerFunctionName; }
+  if (conf.lambdaWorkerFunctionName) { options.worker = conf.lambdaWorkerFunctionName; }
+  if (conf.s3BucketName) { options.bucket = conf.s3BucketName; }
+  if (conf.s3Prefix) { options.prefix = conf.s3Prefix; }
+  if (conf.sqsTaskName) { options.task = conf.sqsTaskName; }
+  if (conf.sqsDeadLetterName) { options.deadletter = conf.sqsDeadLetterName; }
+  if (conf.cloudFormationStackName) { options.stack = conf.cloudFormationStackName; }
+  if (conf.region) { options.region = conf.region; }
+}
+
 function doConfig() {
+  mapDefaults();
   setupQuestions();
   if (questions.length !== 0) {
     inquirer.prompt(questions)
@@ -278,6 +326,7 @@ program
     '-d, --deadletter <queueName>',
     'The name of the Deadletter queue to configure and use. Defaults to "EventLogDeadLetter"')
   .option('-f, --force', 'Do not ask for confirmation')
+  .option('-p, --prefix <prefixName>', 'The S3 File Prefix (folder) to configure and use.')
   .option('-r, --region <awsRegion>', 'The AWS region to use. Defaults to "us-east-1"')
   .option(
     '-s, --stack <stackName>',

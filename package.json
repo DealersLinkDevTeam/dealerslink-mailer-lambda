@@ -8,6 +8,7 @@
     "accountId": "YOUR_ACCOUNT_ID",
     "cloudFormationStackName": "YOUR_CLOUDFORMATION_STACK_NAME",
     "s3BucketName": "YOUR_UNIQUE_BUCKET_NAME",
+    "s3Prefix": "YOUR_S3_PREFIX",
     "sqsTaskName": "YOUR_SQS_TASK_NAME",
     "sqsDeadLetterName": "YOUR_SQS_DEAD_LETTER_NAME",
     "lambdaConsumerFunctionName": "YOUR_LAMBDA_CONSUMER_FUNCTION_NAME",
